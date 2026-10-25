@@ -35,7 +35,7 @@ npm run dev
 ## 部署到 ZKUAT / 自有服务器
 
 完整检测需要常驻查询服务。GitHub Pages 仅支持静态页面，不能单独运行本项目的风险查询服务。
-Vercel 自动发布已在仓库配置中关闭。
+Vercel 自动发布已在仓库配置中关闭。GitHub Pages 改为手动发布静态预览，避免重复自动发布。
 
 本机先运行 `npm ci && npm run build`，再运行 `npm start`，即可启动独立服务。
 默认监听本机 4173 端口；可通过 `HOST`、`PORT` 修改。
