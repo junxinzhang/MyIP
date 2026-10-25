@@ -43,12 +43,15 @@ let minifyJS = () => {
         .pipe(gulp.dest('dist'));
 }
 
+const copyAssets = () => gulp.src(['src/**/*.css', 'src/**/*.svg', 'CNAME']).pipe(gulp.dest('dist'));
+
 exports.minifyHTML = minifyHTML;
 exports.minifyJS = minifyJS;
 
 gulp.task('build', gulp.parallel(
     minifyHTML,
-    minifyJS
+    minifyJS,
+    copyAssets
 ));
 
 gulp.task('default', gulp.parallel('build'));
