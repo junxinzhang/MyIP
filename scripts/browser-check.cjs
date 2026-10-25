@@ -84,8 +84,12 @@ const checks = [];
       assert.notEqual(await live.locator('#score').innerText(), '—', 'live upstream must supply an actual score');
       await live.waitForTimeout(450);
       await live.screenshot({ path: 'outputs/live-desktop.png', fullPage: true });
-      await live.setViewportSize({ width: 390, height: 844 });
-      await live.screenshot({ path: 'outputs/live-mobile.png', fullPage: true });
+      // A fresh mobile page avoids compositor artifacts when full-page capture follows a desktop resize.
+      const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
+      await mobile.goto(base); await ready(mobile); await submit(mobile, '1.1.1.1');
+      await mobile.waitForTimeout(450);
+      assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+      await mobile.screenshot({ path: 'outputs/live-mobile.png', fullPage: true });
       checks.push('REAL upstream: current visitor and manual public IP both return an actual risk score');
     }
     console.log(checks.map((name, i) => `${i + 1}. PASS ${name}`).join('\n'));
