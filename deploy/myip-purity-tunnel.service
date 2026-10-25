@@ -1,0 +1,22 @@
+[Unit]
+Description=MyIP domain tunnel
+After=network-online.target myip-purity.service
+Wants=network-online.target myip-purity.service
+
+[Service]
+Type=simple
+User=myip
+Group=myip
+ExecStart=/usr/local/bin/cloudflared --no-autoupdate --config /etc/myip-purity/tunnel.yml tunnel run
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+MemoryMax=192M
+TasksMax=64
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

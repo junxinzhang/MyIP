@@ -77,3 +77,13 @@ docker compose -f deploy/compose.yml up -d --build
 
 先启动 `npm run dev`，再运行 `npm run test:browser`。macOS 默认使用已安装的 Google Chrome；其他环境先运行 `npx playwright install chromium`。可通过 `MYIP_CHROME` 指定浏览器路径、`MYIP_TEST_URL` 指定测试站点。
 `node scripts/browser-check.cjs --live` 在模拟异常与交互检查之外，还会执行真实的当前 IP 和手动 IP 查询。截图输出至被忽略的 `outputs/` 目录。
+
+### ZKUAT 常驻运行
+
+ZKUAT 使用系统自带的 Node.js 22，无须安装应用依赖。将构建后的 `dist/`、`api/`、`lib/`、`server.cjs` 放入 `/opt/myip-purity/releases/<版本>/`，`current` 指向当前版本。
+`deploy/myip-purity.service` 让应用以专用的低权限账号运行，并在异常退出后恢复。
+域名使用独立 Cloudflare Tunnel 连接到本机 28473 端口，模板见 `deploy/myip-purity-tunnel.service`，不需要更改其他站点的入口。
+配置中的 `TRUST_CLOUDFLARE_TUNNEL=true` 只适用于应用仅监听本机、由该 Tunnel 访问的场景；访客限流取 Cloudflare 覆盖后的地址，不信任用户自带的转发头。
+Tunnel 凭证仅存放于服务器 `/etc/myip-purity/`，不放入项目。
+
+回退时，将 `current` 切回上一份发布目录，仅重启 `myip-purity` 服务；域名原始记录在切换前另行备份。

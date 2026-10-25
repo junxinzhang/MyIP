@@ -20,7 +20,10 @@ function createServer() {
       if (url.searchParams.getAll('ip').length !== 1) req.query.ip = '';
       // Only enable behind a reverse proxy that overwrites incoming forwarding headers.
       delete req.headers['x-vercel-forwarded-for'];
-      if (process.env.TRUST_PROXY !== 'true') delete req.headers['x-forwarded-for'];
+      if (process.env.TRUST_CLOUDFLARE_TUNNEL === 'true') {
+        const client = req.headers['cf-connecting-ip'];
+        req.headers['x-forwarded-for'] = typeof client === 'string' && require('node:net').isIP(client) ? client : req.socket.remoteAddress;
+      } else if (process.env.TRUST_PROXY !== 'true') delete req.headers['x-forwarded-for'];
       res.status = code => { res.statusCode = code; return res; };
       res.json = body => { res.setHeader('Content-Type', 'application/json; charset=utf-8'); res.end(JSON.stringify(body)); };
       try { await handler(req, res); } catch { res.status(500).json({ error: '检测暂时不可用，请稍后再试' }); }

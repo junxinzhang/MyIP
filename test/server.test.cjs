@@ -23,3 +23,22 @@ test('standalone server serves the app and API without an external hosting platf
   response = await fetch(base + '/', { method: 'POST' }); assert.equal(response.status, 405);
   response = await fetch(base + '/healthz'); assert.equal(response.status, 200);
 });
+test('tunnel mode uses the trusted visitor address rather than a spoofed forwarding header', async t => {
+  const originalFetch = global.fetch;
+  const previousTrust = process.env.TRUST_CLOUDFLARE_TUNNEL;
+  process.env.TRUST_CLOUDFLARE_TUNNEL = 'true';
+  global.fetch = async url => ({ ok: true, json: async () => String(url).includes('proxycheck') ? { status: 'ok', '1.0.0.1': { detections: { risk: 10 } } } : { success: true, ip: '1.0.0.1' } });
+  const server = createServer(); await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(async () => {
+    global.fetch = originalFetch;
+    if (previousTrust === undefined) delete process.env.TRUST_CLOUDFLARE_TUNNEL; else process.env.TRUST_CLOUDFLARE_TUNNEL = previousTrust;
+    await new Promise(resolve => server.close(resolve));
+  });
+  const base = `http://127.0.0.1:${server.address().port}`;
+  let response;
+  for (let i = 0; i < 21; i++) {
+    response = await originalFetch(base + '/api/check?ip=1.0.0.1', { headers: { 'cf-connecting-ip': '198.51.100.3', 'x-forwarded-for': `spoof-${i}`, 'x-vercel-forwarded-for': `spoof-${i}` } });
+    await response.text();
+  }
+  assert.equal(response.status, 429);
+});

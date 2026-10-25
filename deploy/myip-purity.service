@@ -1,0 +1,30 @@
+[Unit]
+Description=MyIP purity detection
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=myip
+Group=myip
+WorkingDirectory=/opt/myip-purity/current
+ExecStart=/usr/bin/node server.cjs
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=28473
+Environment=TRUST_CLOUDFLARE_TUNNEL=true
+EnvironmentFile=-/etc/myip-purity/app.env
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+InaccessiblePaths=-/etc/myip-purity/tunnel.json
+MemoryMax=192M
+TasksMax=32
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target
