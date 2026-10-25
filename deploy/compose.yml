@@ -1,0 +1,24 @@
+services:
+  myip:
+    build:
+      context: ..
+    image: myip:local
+    container_name: myip-purity
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:28473:4173"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 64
+    mem_limit: 192m
+    environment:
+      TRUST_PROXY: "true"
+      PROXYCHECK_API_KEY: "${PROXYCHECK_API_KEY:-}"
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
